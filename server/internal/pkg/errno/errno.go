@@ -7,7 +7,7 @@ package errno
 
 import "fmt"
 
-// Errno 定义了 miniblog 使用的错误类型.
+// Errno 定义了 flashBox 使用的错误类型.
 type Errno struct {
 	HTTP    int
 	Code    string

@@ -6,7 +6,7 @@
 package model
 
 import (
-	"flash_box_server/internal/pkg/auth"
+	"flash_box_server/pkg/auth"
 	"gorm.io/gorm"
 	"time"
 )

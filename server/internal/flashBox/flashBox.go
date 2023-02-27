@@ -8,6 +8,9 @@ package flashBox
 import (
 	"context"
 	"errors"
+	"flash_box_server/internal/pkg/known"
+
+	"flash_box_server/pkg/token"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
@@ -84,6 +87,9 @@ func run() error {
 	if err := initStore(); err != nil {
 		return err
 	}
+
+	// 设置 token 包的签发密钥，用于 token 包 token 的签发和解析
+	token.Init(viper.GetString("jwt-secret"), known.XUsernameKey)
 
 	// 设置 Gin 模式
 	gin.SetMode(viper.GetString("runmode"))
