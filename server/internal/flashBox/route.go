@@ -12,6 +12,7 @@ import (
 	"flash_box_server/internal/pkg/errno"
 	"flash_box_server/internal/pkg/log"
 	mw "flash_box_server/internal/pkg/middleware"
+	"flash_box_server/pkg/auth"
 	"github.com/gin-gonic/gin"
 )
 
@@ -28,8 +29,12 @@ func installRouters(g *gin.Engine) error {
 
 		core.WriteResponse(c, nil, map[string]string{"status": "ok"})
 	})
+	authz, err := auth.NewAuthz(store.S.DB())
+	if err != nil {
+		return err
+	}
 
-	uc := user.New(store.S)
+	uc := user.New(store.S, authz)
 
 	g.POST("/login", uc.Login)
 
@@ -41,7 +46,8 @@ func installRouters(g *gin.Engine) error {
 		{
 			userv1.POST("", uc.Create)
 			userv1.PUT(":name/change-password", uc.ChangePassword)
-			userv1.Use(mw.Authn())
+			userv1.Use(mw.Authn(), mw.Authz(authz))
+			userv1.GET(":name", uc.Get) // 获取用户详情
 		}
 	}
 
