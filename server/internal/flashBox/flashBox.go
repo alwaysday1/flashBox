@@ -8,7 +8,11 @@ package flashBox
 import (
 	"context"
 	"errors"
+	"flash_box_server/internal/flashBox/controller/v1/user"
+	"flash_box_server/internal/flashBox/store"
 	"flash_box_server/internal/pkg/known"
+	"google.golang.org/grpc"
+	"net"
 
 	"flash_box_server/pkg/token"
 	"fmt"
@@ -24,6 +28,7 @@ import (
 
 	"flash_box_server/internal/pkg/log"
 	mw "flash_box_server/internal/pkg/middleware"
+	pb "flash_box_server/pkg/proto/flashBox/v1"
 	"flash_box_server/pkg/version/verflag"
 )
 
@@ -111,6 +116,9 @@ func run() error {
 	// 创建并运行 HTTPS 服务器
 	httpssrv := startSecureServer(g)
 
+	// 创建并运行 GRPC 服务器
+	grpcsrv := startGRPCServer()
+
 	// 等待中断信号优雅地关闭服务器（10 秒超时)。
 	//quit := make(chan os.Signal, 1)
 	quit := make(chan os.Signal)
@@ -134,6 +142,8 @@ func run() error {
 		log.Errorw("Secure Server forced to shutdown", "err", err)
 		return err
 	}
+
+	grpcsrv.GracefulStop()
 
 	log.Infow("Server exiting")
 	return nil
@@ -174,4 +184,27 @@ func startSecureServer(g *gin.Engine) *http.Server {
 	}
 
 	return httpssrv
+}
+
+// startGRPCServer 创建并运行 GRPC 服务器.
+func startGRPCServer() *grpc.Server {
+	lis, err := net.Listen("tcp", viper.GetString("grpc.addr"))
+	if err != nil {
+		log.Fatalw("Failed to listen", "err", err)
+	}
+
+	// 创建 GRPC Server 实例
+	grpcsrv := grpc.NewServer()
+	pb.RegisterFlashBoxServer(grpcsrv, user.New(store.S, nil))
+
+	// 运行 GRPC 服务器。在 goroutine 中启动服务器，它不会阻止下面的正常关闭处理流程
+	// 打印一条日志，用来提示 GRPC 服务已经起来，方便排障
+	log.Infow("Start to listening the incoming requests on grpc address", "addr", viper.GetString("grpc.addr"))
+	go func() {
+		if err := grpcsrv.Serve(lis); err != nil {
+			log.Fatalw(err.Error())
+		}
+	}()
+
+	return grpcsrv
 }

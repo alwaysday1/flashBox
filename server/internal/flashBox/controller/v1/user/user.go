@@ -9,12 +9,15 @@ import (
 	"flash_box_server/internal/flashBox/biz"
 	"flash_box_server/internal/flashBox/store"
 	"flash_box_server/pkg/auth"
+
+	pb "flash_box_server/pkg/proto/flashBox/v1"
 )
 
 // UserController 是 user 模块在 Controller 层的实现，用来处理用户模块的请求.
 type UserController struct {
 	a *auth.Authz
 	b biz.IBiz
+	pb.UnimplementedFlashBoxServer
 }
 
 // New 创建一个 user controller.
