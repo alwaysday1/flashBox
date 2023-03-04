@@ -7,11 +7,36 @@ package user
 
 import (
 	"context"
+	"flash_box_server/internal/pkg/core"
+	"flash_box_server/internal/pkg/errno"
 	"flash_box_server/internal/pkg/log"
+	v1 "flash_box_server/pkg/api/flashBox/v1"
 	pb "flash_box_server/pkg/proto/flashBox/v1"
+	"github.com/gin-gonic/gin"
 	"google.golang.org/protobuf/types/known/timestamppb"
 	"time"
 )
+
+// List 返回用户列表，只有 root 用户才能获取用户列表.
+func (ctrl *UserController) List(c *gin.Context) {
+	log.C(c).Infow("List user function called")
+
+	var r v1.ListUserRequest
+	if err := c.ShouldBindQuery(&r); err != nil {
+		core.WriteResponse(c, errno.ErrBind, nil)
+
+		return
+	}
+
+	resp, err := ctrl.b.Users().List(c, r.Offset, r.Limit)
+	if err != nil {
+		core.WriteResponse(c, err, nil)
+
+		return
+	}
+
+	core.WriteResponse(c, nil, resp)
+}
 
 // ListUser 返回用户列表，只有 root 用户才能获取用户列表.
 func (ctrl *UserController) ListUser(ctx context.Context, r *pb.ListUserRequest) (*pb.ListUserResponse, error) {

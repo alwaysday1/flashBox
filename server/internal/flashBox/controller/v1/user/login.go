@@ -13,7 +13,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// 登录 miniblog 并返回一个 JWT Token.
+// 登录 flashBox 并返回一个 JWT Token.
 func (ctrl *UserController) Login(c *gin.Context) {
 	log.C(c).Infow("Login function called")
 

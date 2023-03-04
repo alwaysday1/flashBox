@@ -230,7 +230,7 @@ paths:
     post:
       tags:
         - posts
-      description: create blog post
+      description: create flashBox post
       operationId: createPost
       requestBody:
         description: create post
